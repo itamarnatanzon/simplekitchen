@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+<meta charset="UTF-8">
+<title>מה אפשר להכין?</title>
+
+<style>
+body {
+  font-family: Arial;
+  text-align: center;
+  background: #fafafa;
+}
+
+.top-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+
+input, button {
+  padding: 10px;
+  margin: 5px;
+  font-size: 16px;
+}
+
+.card {
+  background: #eaeaea;
+  margin: 10px auto;
+  padding: 10px;
+  width: 300px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.card:hover {
+  background: #ddd;
+}
+
+.missing {
+  color: red;
+}
+
+.recipe-box {
+  background: white;
+  border: 2px solid #333;
+  padding: 15px;
+  width: 300px;
+  margin: 15px auto;
+  border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- 🎲 כפתור רנדומלי -->
+<button class="top-btn" onclick="randomRecipe()">🎲 מאכל רנדומלי</button>
+
+<h1>🍳 מה אפשר להכין?</h1>
+
+<input id="input" placeholder="ביצים לחם גבינה">
+<br>
+<button onclick="search()">חפש</button>
+
+<div id="results"></div>
+<div id="details"></div>
+
+<script>
+
+const recipes = [
+  { name: "טוסט", items: ["לחם", "גבינה"], steps: "1. קח לחם\n2. שים גבינה\n3. חימום בטוסטר" },
+  { name: "סנדוויץ'", items: ["לחם", "חמאה"], steps: "1. מרח חמאה\n2. סגור בין פרוסות לחם" },
+  { name: "חביתה", items: ["ביצים", "שמן", "מלח"], steps: "1. טרוף ביצים\n2. טגן במחבת" },
+  { name: "פנקייק", items: ["ביצים", "קמח", "חלב", "סוכר"], steps: "1. ערבב הכל\n2. טגן עד זהוב" },
+  { name: "עוגת שוקולד", items: ["קמח", "סוכר", "ביצים", "שוקולד"], steps: "1. ערבב\n2. אפייה 180°" }
+];
+
+function search() {
+  const input = document.getElementById("input").value;
+
+  const userItems = input
+    .split(/[\s,]+/)
+    .map(x => x.trim().toLowerCase())
+    .filter(x => x !== "");
+
+  const results = document.getElementById("results");
+  const details = document.getElementById("details");
+
+  results.innerHTML = "";
+  details.innerHTML = "";
+
+  let scored = recipes.map((r, index) => {
+    let missing = r.items.filter(i => !userItems.includes(i.toLowerCase()));
+    return {
+      index,
+      name: r.name,
+      items: r.items,
+      steps: r.steps,
+      missing,
+      missingCount: missing.length
+    };
+  });
+
+  scored.sort((a, b) => a.missingCount - b.missingCount);
+
+  let shown = false;
+
+  scored.forEach(r => {
+    if (r.missingCount === 0) {
+      shown = true;
+      results.innerHTML += `
+        <div class="card" onclick="showRecipe(${r.index})">
+          <h3>${r.name}</h3>
+          <p>יש לך הכל 🎉</p>
+        </div>
+      `;
+    } else if (r.missingCount <= 2) {
+      shown = true;
+      results.innerHTML += `
+        <div class="card" onclick="showRecipe(${r.index})">
+          <h3>${r.name}</h3>
+          <p class="missing">חסר לך רק: ${r.missing.join(", ")}</p>
+        </div>
+      `;
+    }
+  });
+
+  if (!shown) {
+    results.innerHTML = "<p>לא נמצאו מתכונים קרובים 😢</p>";
+  }
+}
+
+// 🎲 פונקציה רנדומלית
+function randomRecipe() {
+  const randomIndex = Math.floor(Math.random() * recipes.length);
+  showRecipe(randomIndex);
+}
+
+function showRecipe(i) {
+  const r = recipes[i];
+
+  document.getElementById("details").innerHTML = `
+    <div class="recipe-box">
+      <h2>${r.name}</h2>
+      <p><b>מצרכים:</b> ${r.items.join(", ")}</p>
+      <p><b>אופן הכנה:</b><br>${r.steps.replaceAll("\n", "<br>")}</p>
+    </div>
+  `;
+}
+
+</script>
+
+</body>
+</html>
